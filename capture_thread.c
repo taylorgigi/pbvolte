@@ -33,7 +33,7 @@ void packet_callback(u_char *user, const struct pcap_pkthdr *h, const u_char *by
 
 // packet reading thread on live mode using pfring
 void *live_thread_pfring(void *arg) {
-	// to-do: bind cpu
+	// to-do: set cpu affinity
 	pthread_detach(pthread_self());
 	rte_atomic32_inc(&prog_ctl.thr_num);
 	unsigned long idx = (unsigned long)arg;
@@ -84,14 +84,17 @@ void *live_thread_pfring(void *arg) {
 		retcode = pfring_recv(pfhdl, (u_char**)&bufp, SNAPSHOT_LEN, &hdr, WAIT);
 		if(retcode == 1) { // success
 			++statis.pkt_cur;
-			//while((n = pkt_pool_alloc(&pack_pool)) == NULL) {
-			//	;
-			//}
-			//pktbuf = (pkt_buffer*)n->data;
-			//pktbuf->len = hdr->caplen;
-			//pktbuf->ts = hdr->ts;
-			//memcpy(pktbuf->pkt, buf, hdr->caplen);
-			//list_push(&dispatch_queue, n);
+			// allocate memory for store packet and push packet to dispatch_queue ====>
+			while((n = pkt_pool_alloc(&pack_pool)) == NULL) {
+				;
+			}
+			pktbuf = (pkt_buffer*)n->data;
+			pktbuf->len = hdr.caplen;
+			pktbuf->ts = hdr.ts;
+			memcpy(pktbuf->pkt, buf, hdr.caplen);
+			list_push(&dispatch_queue, n);
+			// <==== allocate memory for store packet and push packet to dispatch_queue
+			// pkt speed and pfring recv drop statistics ====>
 			gettimeofday(&statis.tv_cur, NULL);
 			delay = statis.tv_cur.tv_sec - statis.tv_old.tv_sec;
 			if(delay >= 60) {
@@ -100,6 +103,7 @@ void *live_thread_pfring(void *arg) {
 				statis.pkt_old = statis.pkt_cur;
 				statis.tv_old = statis.tv_cur;
 			}
+			// <==== pkt speed and pfring recv drop statistics
 		}
 		else if(retcode == -1) { // error
 			printf("pfring_recv error,%s,%d\n",__FILE__,__LINE__);
@@ -116,7 +120,7 @@ CLEANUP_AND_EXIT:
 
 // packet reading thread on live mode using libpcap
 void *live_thread_pcap(void *arg) {
-	// to-do: bind cpu
+	// to-do: set cpu affinity
 	pthread_detach(pthread_self());
 	rte_atomic32_inc(&prog_ctl.thr_num);
 	unsigned long idx = (unsigned long)arg;
@@ -217,7 +221,7 @@ int read_pcap_file(const char *filename) {
 
 // packet reading pthread on offline mode
 void *offline_thread(void *arg) {
-	// to-do: bind cpu
+	// to-do: set cpu affinity
 	pthread_detach(pthread_self());
 
 	rte_atomic32_inc(&prog_ctl.thr_num);

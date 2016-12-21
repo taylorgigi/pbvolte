@@ -3,7 +3,7 @@
 #include <pthread.h>
 
 void *transaction_thread(void *arg) {
-	// to-do: bind cpu
+	// to-do: set cpu affinity
 	pthread_detach(pthread_self());
 
 	int idx = (int)(unsigned long)arg;
