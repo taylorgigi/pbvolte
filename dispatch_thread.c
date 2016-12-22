@@ -1,4 +1,6 @@
 #include "list.h"
+#include "hash.h"
+#include "config.h"
 #include "global.h"
 #include "pkt_pool.h"
 #include "decode_ipv4.h"
@@ -6,6 +8,7 @@
 #include "decode_vlan.h"
 #include "decode_ethernet.h"
 #include "capture_thread.h"
+#include "transaction_thread.h"
 #include "dispatch_thread.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,11 +56,12 @@ FUCK_AGAIN:
 			printf("ether type 0x%04x not supported,%s,%d\n",type,__FILE__,__LINE__);
 			return -1;
 	}
+	return 0;
 }
 
 // get transaction queue by key(src/dst ip)
 uint32_t get_transac_queue(dis_key *key, int klen) {
-	uint32_t hashv = hash(&key, klen);
+	uint32_t hashv = hash((char*)&key, klen);
 	return (hashv % glb_config.nb_thr);
 }
 
