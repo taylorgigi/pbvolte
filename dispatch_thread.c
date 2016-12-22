@@ -15,6 +15,7 @@
 
 // generate key by src/dst ip
 int gen_key_by_ip(node_t *n, dis_key *key) {
+	int i;
 	pkt_buffer *pktbf = NULL;
 	ethernet_hdr *eth_hdr = NULL;
 	ipv4_hdr *ip4hdr = NULL;
@@ -33,7 +34,10 @@ FUCK_AGAIN:
 			break;
 		case ETHERNET_TYPE_IPV6:
 			ip6hdr = (ipv6_hdr*)(ptr);
-			key->ip_sum = IPV6_GET_RAW_SRC(ip6hdr)[3] + IPV6_GET_RAW_DST(ip6hdr)[3];
+			//key->ip_sum += (IPV6_GET_RAW_SRC(ip6hdr)[3] + IPV6_GET_RAW_DST(ip6hdr)[3]);
+			for(i=0; i<4; ++i) {
+				key->ip_sum += (IPV6_GET_RAW_SRC(ip6hdr)[i] + IPV6_GET_RAW_DST(ip6hdr)[i]);
+			}
 			break;
 		case ETHERNET_TYPE_VLAN:
 		case ETHERNET_TYPE_8021QINQ:
