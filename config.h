@@ -24,7 +24,7 @@ typedef struct config_xdr {
 } config_xdr;
 
 typedef struct config_pool {
-	uint32_t pkt;
+    uint32_t pkt;
     uint32_t ipfrag;
     uint32_t sctpfrag;
     uint32_t tcpfrag;
@@ -57,7 +57,7 @@ typedef struct config_timeout {
 typedef struct global_config {
 	uint16_t       mode;
 	uint16_t       nb_thr;
-    mode_live      live;
+	mode_live      live;
 	mode_offline   offline;
 	config_xdr     xdr;
 	config_pool    pool;

@@ -153,6 +153,18 @@ void launch_thread() {
 	}
 }
 
+// create transaction queue
+int transac_queue_create() {
+	int i;
+	transac_queue = calloc(glb_config.nb_thr, sizeof(list_t));
+	if(transac_queue == NULL)
+		return -1;
+	for(i=0; i<glb_config.nb_thr; ++i) {
+		list_create(&transac_queue[i]);
+	}
+	return 0;
+}
+
 // resource initialization including:
 // - packet pool
 // - program control variable
@@ -169,15 +181,20 @@ int initialize() {
 	// epoll create
 	if(epoll_init() < 0)
 		return EXIT_FAILURE;
+	// create packet pool
 	if(pkt_pool_create(&pack_pool, glb_config.pool.pkt) < 0)
 		return EXIT_FAILURE;
+	// create dispatch queue
 	list_create(&dispatch_queue);
+	// create transaction queue
+	if(transac_queue_create() < 0)
+		return EXIT_FAILURE;
 
 	return EXIT_SUCCESS;
 }
 
 int main(int argc, char *argv[]) {
-	// check program prarmeters
+	// check program prarmeters and load system configuration
 	if(parse_prog_parameters(argc, argv) != EXIT_SUCCESS) {
 		printf("parse command line params error\n");
 		return EXIT_FAILURE;
