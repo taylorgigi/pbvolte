@@ -55,13 +55,21 @@ FUCK_AGAIN:
 	}
 }
 
+// get transaction queue by key(src/dst ip)
+uint32_t get_transac_queue(dis_key *key, int klen) {
+	uint32_t hashv = hash(&key, klen);
+	return (hashv % glb_config.nb_thr);
+}
+
 // dispatch packet to transaction thread according to src/dst ip pair
 void *dispatch_thread(void *arg) {
 	// to-do: set cpu affinity
+	uint32_t pos;
+	dis_key key;
+	list_t *q = NULL;
+	node_t *n = NULL;
 	pthread_detach(pthread_self());
 	rte_atomic32_inc(&prog_ctl.thr_num);
-	node_t *n = NULL;
-	dis_key key;
 	int keysz = sizeof(dis_key);
 	// keep running?
 	while(rte_atomic32_read(&prog_ctl.run)) {
@@ -69,7 +77,12 @@ void *dispatch_thread(void *arg) {
 			;// do nothing
 		}
 		memset(&key, 0, keysz);
-		gen_key_by_ip(n, &key);
+		if(gen_key_by_ip(n, &key) < 0)
+			break;
+		pos = get_transac_queue(&key, keysz);
+printf("[DEBUG] %u\n", pos);
+		q = &transac_queue[pos];
+		list_push(q, n);
 	}
 	// cleanup and exit
 	rte_atomic32_dec(&prog_ctl.thr_num);
