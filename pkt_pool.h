@@ -11,7 +11,7 @@
 typedef struct pkt_buffer {
 	struct timeval ts;                  // timestamp of packet(sec, usec)
 	uint16_t len;                       // length of packet in byte
-	char pkt[PKT_MAX];                  // packet data buffer
+	char pkt[PKT_MAX];                  // packet data(ethernet frame) buffer
 } pkt_buffer;
 
 typedef struct pkt_pool {
