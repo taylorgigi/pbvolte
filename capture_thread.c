@@ -18,7 +18,6 @@ list_t dispatch_queue;
 void packet_callback(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes) {
 	cap_statis *statis = (cap_statis*)user;
 	statis->byte_cur += h->caplen;
-	return;
 	node_t *n = NULL;
 	while((n = pkt_pool_alloc(&pack_pool)) == NULL) {
 		;
@@ -199,6 +198,7 @@ int read_pcap_file(const char *filename) {
 		printf("pcap_open_offline error,%s,%s,%d\n",errbuf,__FILE__,__LINE__);
 		return -1;
 	}
+printf("%s\n", name);
 	unsigned long sum = 0;
 	int cnt = 0;
 	cap_statis statis = {0, 0, 0, 0, {0, 0}, {0, 0}};

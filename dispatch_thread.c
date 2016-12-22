@@ -1,11 +1,12 @@
 #include "list.h"
 #include "global.h"
 #include "pkt_pool.h"
-#include "capture_thread.h"
-#include "dispatch_thread.h"
 #include "decode_ipv4.h"
 #include "decode_ipv6.h"
+#include "decode_vlan.h"
 #include "decode_ethernet.h"
+#include "capture_thread.h"
+#include "dispatch_thread.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,12 +19,13 @@ int gen_key_by_ip(node_t *n, dis_key *key) {
 	ethernet_hdr *eth_hdr = NULL;
 	ipv4_hdr *ip4hdr = NULL;
 	ipv6_hdr *ip6hdr = NULL;
+	vlan_hdr *vlhdr = NULL;
 	eth_hdr = (ethernet_hdr*)pktbf->pkt;
 	pktbf = (pkt_buffer*)n->data;
 	eth_hdr = (ethernet_hdr*)pktbf->pkt;
 	uint16_t type = ntohs(eth_hdr->eth_type);
-	char *ptr = pktbf->pkt + ETHERNET_HEADER_LEN;
-AGAIN:
+	const char *ptr = pktbf->pkt + ETHERNET_HEADER_LEN;
+FUCK_AGAIN:
 	switch(type) {
 		case ETHERNET_TYPE_IP:
 			ip4hdr = (ipv4_hdr*)ptr;
@@ -35,6 +37,10 @@ AGAIN:
 			break;
 		case ETHERNET_TYPE_VLAN:
 		case ETHERNET_TYPE_8021QINQ:
+			vlhdr = (vlan_hdr*)ptr;
+			ptr += VLAN_HEADER_LEN;
+			type = ntohs(vlhdr->protocol);
+			goto FUCK_AGAIN;
 			break;
 		case ETHERNET_TYPE_MPLS_UNICAST:
 		case ETHERNET_TYPE_MPLS_MULTICAST:
