@@ -33,7 +33,7 @@ FUCK_AGAIN:
 			break;
 		case ETHERNET_TYPE_IPV6:
 			ip6hdr = (ipv6_hdr*)(ptr);
-			key->ip_sum = IPV6_GET_RAW_SRC(ip6hdr)[0] + IPV6_GET_RAW_DST(ip6hdr)[0];
+			key->ip_sum = IPV6_GET_RAW_SRC(ip6hdr)[3] + IPV6_GET_RAW_DST(ip6hdr)[3];
 			break;
 		case ETHERNET_TYPE_VLAN:
 		case ETHERNET_TYPE_8021QINQ:
