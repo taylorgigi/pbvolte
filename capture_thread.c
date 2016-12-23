@@ -198,7 +198,6 @@ int read_pcap_file(const char *filename) {
 		printf("pcap_open_offline error,%s,%s,%d\n",errbuf,__FILE__,__LINE__);
 		return -1;
 	}
-printf("%s\n", name);
 	unsigned long sum = 0;
 	int cnt = 0;
 	cap_statis statis = {0, 0, 0, 0, {0, 0}, {0, 0}};
