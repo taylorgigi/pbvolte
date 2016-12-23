@@ -8,6 +8,7 @@
 #include <string.h>
 #include <pcap/pcap.h>
 #include <sys/types.h>
+#include <time.h>
 #include <dirent.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,8 +20,9 @@ void packet_callback(u_char *user, const struct pcap_pkthdr *h, const u_char *by
 	cap_statis *statis = (cap_statis*)user;
 	statis->byte_cur += h->caplen;
 	node_t *n = NULL;
+	struct timespec req = {0, 10};
 	while((n = pkt_pool_alloc(&pack_pool)) == NULL) {
-		;
+		nanosleep(&req, NULL);
 	}
 	pkt_buffer *pkt = (pkt_buffer*)n->data;
 	memcpy(pkt->pkt, bytes, h->caplen);
@@ -79,13 +81,14 @@ void *live_thread_pfring(void *arg) {
 	char *bufp = buf;
 	node_t *n = NULL;
 	pkt_buffer *pktbuf = NULL;
+	struct timespec req = {0, 10};
         while(rte_atomic32_read(&prog_ctl.run)) {
 		retcode = pfring_recv(pfhdl, (u_char**)&bufp, SNAPSHOT_LEN, &hdr, WAIT);
 		if(retcode == 1) { // success
 			++statis.pkt_cur;
 			// allocate memory for store packet and push packet to dispatch_queue ====>
 			while((n = pkt_pool_alloc(&pack_pool)) == NULL) {
-				;
+				nanosleep(&req, NULL);
 			}
 			pktbuf = (pkt_buffer*)n->data;
 			pktbuf->len = hdr.caplen;

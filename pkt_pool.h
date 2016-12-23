@@ -14,6 +14,8 @@ typedef struct pkt_buffer {
 	char pkt[PKT_MAX];                  // packet data(ethernet frame) buffer
 } pkt_buffer;
 
+#define pkt_buffer_clear(pktbfp) memset(pktbfp, 0, sizeof(pkt_buffer))
+
 typedef struct pkt_pool {
 	rte_atomic32_t size;                // number of packet can contain
 	rte_atomic32_t used;                // number of used buffers

@@ -10,6 +10,7 @@
 #include "capture_thread.h"
 #include "transaction_thread.h"
 #include "dispatch_thread.h"
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -75,11 +76,24 @@ void *dispatch_thread(void *arg) {
 	pthread_detach(pthread_self());
 	rte_atomic32_inc(&prog_ctl.thr_num);
 	int keysz = sizeof(dis_key);
+	struct timespec req = {0, 10};
+	struct timeval old, cur;
+	int delay;
+
+	gettimeofday(&old, NULL);
 	// keep running?
 	while(rte_atomic32_read(&prog_ctl.run)) {
 		while((n = list_pop(&dispatch_queue)) == NULL) {
-			;// do nothing
+			// to-do: there may be a performance problem with nanosleep
+			nanosleep(&req, NULL);
 		}
+		// pkt_pool usage statistic ====>
+		gettimeofday(&cur, NULL);
+		delay = cur.tv_sec - old.tv_sec;
+		if(delay >= 60) {
+			printf("[DEBUG] pkt pool usage rate %.2f%% %d/%d (used/total)", rte_atomic32_read(&pack_pool.used)/(float)rte_atomic32_read(&pack_pool.size),rte_atomic32_read(&pack_pool.used), rte_atomic32_read(&pack_pool.size));
+		}
+		// <==== pkt_pool usage statistic
 		memset(&key, 0, keysz);
 		if(gen_key_by_ip(n, &key) < 0)
 			break;
