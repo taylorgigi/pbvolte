@@ -13,7 +13,8 @@ typedef struct hash_bucket_t {
 } hash_bucket;
 
 typedef struct hash_table_t {
-	rte_atomic32_t size;
+	rte_atomic32_t size;             // total number of buckets when created
+	rte_atomic32_t used;             // used(occupied) number of buckets
 	hash_bucket *buckets;
 
 	uint32_t (*hash)(void *key, int len);
