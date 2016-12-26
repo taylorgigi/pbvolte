@@ -91,7 +91,8 @@ void *dispatch_thread(void *arg) {
 		gettimeofday(&cur, NULL);
 		delay = cur.tv_sec - old.tv_sec;
 		if(delay >= 60) {
-			printf("[DEBUG] pkt pool usage rate %.2f%% %d/%d (used/total)", rte_atomic32_read(&pack_pool.used)/(float)rte_atomic32_read(&pack_pool.size),rte_atomic32_read(&pack_pool.used), rte_atomic32_read(&pack_pool.size));
+			printf("[DEBUG] pkt pool usage rate %.2f%% %d/%d (used/total)", (rte_atomic32_read(&pack_pool.used)/(float)rte_atomic32_read(&pack_pool.size))*100,rte_atomic32_read(&pack_pool.used), rte_atomic32_read(&pack_pool.size));
+			old = cur;
 		}
 		// <==== pkt_pool usage statistic
 		memset(&key, 0, keysz);
