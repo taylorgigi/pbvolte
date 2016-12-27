@@ -2,6 +2,7 @@
 
 #define ROT32(x, y) ((x << y) | (x >> (32 - y))) // avoid effort
 
+//
 uint32_t murmur3_32(const char *key, uint32_t len, uint32_t seed) {
 	static const uint32_t c1 = 0xcc9e2d51;
 	static const uint32_t c2 = 0x1b873593;
@@ -53,7 +54,39 @@ uint32_t murmur3_32(const char *key, uint32_t len, uint32_t seed) {
 	return hash;
 }
 
+//
+uint32_t APHash(const char* str, unsigned int len) {
+	unsigned int hash = 0xAAAAAAAA;
+	unsigned int i    = 0;
+	for(i = 0; i < len; str++, i++) {
+		hash ^= ((i & 1) == 0) ? (  (hash <<  7) ^ (*str) * (hash >> 3)) :
+			(~((hash << 11) + ((*str) ^ (hash >> 5))));
+	}
+	return hash;
+}
+
+//
+uint32_t sdbm_hash(const char* str, unsigned int len) {
+	unsigned int hv = 0;
+	unsigned int i = 0;
+	for(i = 0; i < len; str++, i++) {
+		hv = (*str) + (hv << 6) + (hv << 16) - hv;
+	}
+	return hv;
+}
+
+// hash
 uint32_t hash(const char *key, uint32_t len) {
 	return murmur3_32(key, len, 0xbc9f1d34);
+}
+
+// verify hash 1
+uint32_t verify_hash1(const char *key, uint32_t len) {
+	return sdbm_hash(key, len);
+}
+
+// verify hash 2
+uint32_t verify_hash2(const char *key, uint32_t len) {
+	return ap_hash(key, len);
 }
 
