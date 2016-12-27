@@ -55,14 +55,14 @@ uint32_t murmur3_32(const char *key, uint32_t len, uint32_t seed) {
 }
 
 //
-uint32_t APHash(const char* str, unsigned int len) {
-	unsigned int hash = 0xAAAAAAAA;
+uint32_t ap_hash(const char* str, unsigned int len) {
+	unsigned int hv = 0xAAAAAAAA;
 	unsigned int i    = 0;
 	for(i = 0; i < len; str++, i++) {
-		hash ^= ((i & 1) == 0) ? (  (hash <<  7) ^ (*str) * (hash >> 3)) :
-			(~((hash << 11) + ((*str) ^ (hash >> 5))));
+		hv ^= ((i & 1) == 0) ? (  (hv <<  7) ^ (*str) * (hv >> 3)) :
+			(~((hv << 11) + ((*str) ^ (hv >> 5))));
 	}
-	return hash;
+	return hv;
 }
 
 //
