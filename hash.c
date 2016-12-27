@@ -76,17 +76,17 @@ uint32_t sdbm_hash(const char* str, unsigned int len) {
 }
 
 // hash
-uint32_t hash(const char *key, uint32_t len) {
+uint32_t hash(void *key, uint32_t len) {
 	return murmur3_32(key, len, 0xbc9f1d34);
 }
 
 // verify hash 1
-uint32_t verify_hash1(const char *key, uint32_t len) {
+uint32_t verify_hash1(void *key, uint32_t len) {
 	return sdbm_hash(key, len);
 }
 
 // verify hash 2
-uint32_t verify_hash2(const char *key, uint32_t len) {
+uint32_t verify_hash2(void *key, uint32_t len) {
 	return ap_hash(key, len);
 }
 
