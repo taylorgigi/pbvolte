@@ -96,13 +96,13 @@ void *dispatch_thread(void *arg) {
 		gettimeofday(&cur, NULL);
 		delay = cur.tv_sec - old.tv_sec;
 		if(delay >= 60) {
-			printf("[DEBUG] pkt pool usage rate %.2f%% %d/%d (used/total)", (rte_atomic32_read(&pack_pool.used)/(float)rte_atomic32_read(&pack_pool.size))*100,rte_atomic32_read(&pack_pool.used), rte_atomic32_read(&pack_pool.size));
+			printf("[DEBUG] pkt pool usage rate %.2f%% %d/%d (used/total)\n", (rte_atomic32_read(&pack_pool.used)/(float)rte_atomic32_read(&pack_pool.size))*100,rte_atomic32_read(&pack_pool.used), rte_atomic32_read(&pack_pool.size));
 			old = cur;
 		}
 		// <==== pkt_pool usage statistic
 		// balancly putting to transaction queue ====>
 		pos = get_transac_queue(n);
-printf("[DEBUG] %u\n", pos);
+//printf("[DEBUG] %u\n", pos);
 		q = &transac_queue[pos];
 		list_push(q, n);
 		// <==== balancly putting to transaction queue
