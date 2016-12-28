@@ -95,10 +95,12 @@ void signal_handle(int fd) {
 		exit(EXIT_FAILURE);
 	}
 	//printf("Signal %d happens, will terminate system\n", si.ssi_signo);
-	rte_atomic32_set(&prog_ctl.run, 0);
-	// wait until all threads exit, clean up system resource.
-	while(rte_atomic32_read(&prog_ctl.thr_num) > 0) {
-		nanosleep(&req, NULL);
+	if(si.ssi_signo == SIGINT || si.ssi_signo == SIGKILL || si.ssi_signo == SIGTERM) {
+		rte_atomic32_set(&prog_ctl.run, 0);
+		// wait until all threads exit, clean up system resource.
+		while(rte_atomic32_read(&prog_ctl.thr_num) > 0) {
+			nanosleep(&req, NULL);
+		}
 	}
 }
 
