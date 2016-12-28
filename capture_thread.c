@@ -86,6 +86,7 @@ void *live_thread_pfring(void *arg) {
 		retcode = pfring_recv(pfhdl, (u_char**)&bufp, SNAPSHOT_LEN, &hdr, WAIT);
 		if(retcode == 1) { // success
 			++statis.pkt_cur;
+			statis.byte_cur += hdr.caplen;
 			// allocate memory for store packet and push packet to dispatch_queue ====>
 			while((n = pkt_pool_alloc(&pack_pool)) == NULL) {
 				nanosleep(&req, NULL);
@@ -101,8 +102,9 @@ void *live_thread_pfring(void *arg) {
 			delay = statis.tv_cur.tv_sec - statis.tv_old.tv_sec;
 			if(delay >= 60) {
 				pfring_stats(pfhdl, &stat);
-				printf("Live NIC %s, %s recv:%lu drop:%lu, %.2f pps\n",dev,ringname,(unsigned long)stat.recv,(unsigned long)stat.drop,(statis.pkt_cur-statis.pkt_old)/(float)delay);
+				printf("Live NIC %s, %s recv:%lu drop:%lu, %.2f pps %.2f Bps\n",dev,ringname,(unsigned long)stat.recv,(unsigned long)stat.drop,(statis.pkt_cur-statis.pkt_old)/(float)delay, (statis.byte_cur - statis.byte_old)/(float)delay);
 				statis.pkt_old = statis.pkt_cur;
+				statis.byte_old = statis.byte_cur;
 				statis.tv_old = statis.tv_cur;
 			}
 			// <==== pkt speed and pfring recv drop statistics
