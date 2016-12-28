@@ -17,9 +17,10 @@
 #include <pthread.h>
 #include <arpa/inet.h>
 
-// generate key by src/dst ip
-int gen_key_by_ip(node_t *n, dis_key *key) {
+uint32_t get_transac_queue(node_t *n) {
 	int i;
+	uint32_t hash_val;
+	uint64_t ip4sum;
 	pkt_buffer *pktbf = NULL;
 	ethernet_hdr *eth_hdr = NULL;
 	ipv4_hdr *ip4hdr = NULL;
@@ -30,18 +31,14 @@ int gen_key_by_ip(node_t *n, dis_key *key) {
 	eth_hdr = (ethernet_hdr*)pktbf->pkt;
 	uint16_t type = ntohs(eth_hdr->eth_type);
 	const char *ptr = pktbf->pkt + ETHERNET_HEADER_LEN;
+	uint32_t ip6sum[4];
 FUCK_AGAIN:
 	switch(type) {
 		case ETHERNET_TYPE_IP:
 			ip4hdr = (ipv4_hdr*)ptr;
-			key->ip_sum = IPV4_GET_RAW_IPSRC_U32(ip4hdr) + IPV4_GET_RAW_IPDST_U32(ip4hdr);
 			break;
 		case ETHERNET_TYPE_IPV6:
 			ip6hdr = (ipv6_hdr*)(ptr);
-			//key->ip_sum += (IPV6_GET_RAW_SRC(ip6hdr)[3] + IPV6_GET_RAW_DST(ip6hdr)[3]);
-			for(i=0; i<4; ++i) {
-				key->ip_sum += (IPV6_GET_RAW_SRC(ip6hdr)[i] + IPV6_GET_RAW_DST(ip6hdr)[i]);
-			}
 			break;
 		case ETHERNET_TYPE_VLAN:
 		case ETHERNET_TYPE_8021QINQ:
@@ -50,32 +47,40 @@ FUCK_AGAIN:
 			type = ntohs(vlhdr->protocol);
 			goto FUCK_AGAIN;
 			break;
+		case ETHERNET_TYPE_ARP:
+			break;
 		case ETHERNET_TYPE_MPLS_UNICAST:
 		case ETHERNET_TYPE_MPLS_MULTICAST:
 			break;
 		default:
 			printf("ether type 0x%04x not supported,%s,%d\n",type,__FILE__,__LINE__);
-			return -1;
+			break;
 	}
+	// balance by ip pair
+	if(ip4hdr != NULL) {
+		ip4sum = IPV4_GET_RAW_IPSRC_U32(ip4hdr) + IPV4_GET_RAW_IPDST_U32(ip4hdr);
+		hash_val = hash(&ip4sum, 8);
+		return (hash_val % glb_config.nb_thr);
+	}
+	else if(ip6hdr != NULL) {
+		for(i=0; i<4; ++i) {
+			ip6sum[i] = (IPV6_GET_RAW_SRC(ip6hdr)[i] + IPV6_GET_RAW_DST(ip6hdr)[i]);
+		}
+		hash_val = hash(&ip6sum, 16);
+		return (hash_val % glb_config.nb_thr);
+	}
+	// if neither ipv4 nor ipv6 packet, give packet to transaction thread0.
 	return 0;
-}
-
-// get transaction queue by key(src/dst ip)
-uint32_t get_transac_queue(dis_key *key, int klen) {
-	uint32_t hashv = hash((char*)&key, klen);
-	return (hashv % glb_config.nb_thr);
 }
 
 // dispatch packet to transaction thread according to src/dst ip pair
 void *dispatch_thread(void *arg) {
 	// to-do: set cpu affinity
 	uint32_t pos;
-	dis_key key;
 	list_t *q = NULL;
 	node_t *n = NULL;
 	pthread_detach(pthread_self());
 	rte_atomic32_inc(&prog_ctl.thr_num);
-	int keysz = sizeof(dis_key);
 	struct timespec req = {0, 10};
 	struct timeval old, cur;
 	int delay;
@@ -95,13 +100,12 @@ void *dispatch_thread(void *arg) {
 			old = cur;
 		}
 		// <==== pkt_pool usage statistic
-		memset(&key, 0, keysz);
-		if(gen_key_by_ip(n, &key) < 0)
-			break;
-		pos = get_transac_queue(&key, keysz);
+		// balancly putting to transaction queue ====>
+		pos = get_transac_queue(n);
 printf("[DEBUG] %u\n", pos);
 		q = &transac_queue[pos];
 		list_push(q, n);
+		// <==== balancly putting to transaction queue
 	}
 	// cleanup and exit
 	rte_atomic32_dec(&prog_ctl.thr_num);
