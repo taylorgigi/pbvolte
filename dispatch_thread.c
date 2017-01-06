@@ -6,6 +6,7 @@
 #include "decode_ipv4.h"
 #include "decode_ipv6.h"
 #include "decode_vlan.h"
+#include "decode_mpls.h"
 #include "decode_ethernet.h"
 #include "capture_thread.h"
 #include "transaction_thread.h"
@@ -32,6 +33,8 @@ uint32_t get_transac_queue(node_t *n) {
 	uint16_t type = ntohs(eth_hdr->eth_type);
 	const char *ptr = pktbf->pkt + ETHERNET_HEADER_LEN;
 	uint32_t ip6sum[4];
+	uint32_t shim;
+	int label;
 FUCK_AGAIN:
 	switch(type) {
 		case ETHERNET_TYPE_IP:
@@ -51,6 +54,19 @@ FUCK_AGAIN:
 			break;
 		case ETHERNET_TYPE_MPLS_UNICAST:
 		case ETHERNET_TYPE_MPLS_MULTICAST:
+			do {
+				shim = *(uint32_t *)ptr;
+				ptr += MPLS_HEADER_LEN;
+			} while(MPLS_BOTTOM(shim) == 0);
+			label = MPLS_LABEL(shim);
+			if(label == MPLS_LABEL_IPV4) {
+				type = ETHERNET_TYPE_IP;
+				goto FUCK_AGAIN;
+			}
+			else if(label == MPLS_LABEL_IPV6) {
+				type = ETHERNET_TYPE_IPV6;
+				goto FUCK_AGAIN;
+			}
 			break;
 		default:
 			printf("ether type 0x%04x not supported,%s,%d\n",type,__FILE__,__LINE__);
