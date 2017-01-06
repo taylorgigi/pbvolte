@@ -56,7 +56,7 @@ void *transaction_thread(void *arg) {
 		gettimeofday(&cur, NULL);
 		delay = cur.tv_sec - old.tv_sec;
 		if(delay >= 60) {
-			printf("[DEBUG] transaction thread processing speed %.2f pps\n",pkt_cnt/(float)delay);
+			printf("[DEBUG] transaction thread[%d] processing speed %.2f pps\n",idx,pkt_cnt/(float)delay);
 			pkt_cnt = 0;
 		}
 	}
