@@ -1,7 +1,6 @@
 #ifndef DECODE_ETHERNET_H
 #define DECODE_ETHERNET_H
 
-#include "packet_decode.h"
 #include <stdint.h>
 
 #define ETHERNET_HEADER_LEN           14
@@ -32,14 +31,11 @@
 #define ETHERNET_TYPE_MPLS_UNICAST    0x8847
 #define ETHERNET_TYPE_MPLS_MULTICAST  0x8848
 
-
 typedef struct ethernet_hdr {
 	uint8_t eth_dst[6];
 	uint8_t eth_src[6];
 	uint16_t eth_type;
 } __attribute__((__packed__)) ethernet_hdr;
-
-int decode_ethernet(packet_t *pkt, uint8_t *payload, uint16_t len);
 
 #endif
 
