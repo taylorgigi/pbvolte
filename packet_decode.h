@@ -20,7 +20,7 @@ int decode_ipv4(packet_t *pkt, uint8_t *payload, uint16_t len);
 int decode_ipv6(packet_t *pkt, uint8_t *payload, uint16_t len);
 int decode_vlan(packet_t *pkt, uint8_t *payload, uint16_t len);
 int decode_mpls(packet_t *pkt, uint8_t *payload, uint16_t len);
-void packet_decode(packet_t *pkt, uint8_t *payload, uint16_t len);
+int packet_decode(packet_t *pkt, uint8_t *payload, uint16_t len);
 
 #endif
 
