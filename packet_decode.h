@@ -1,6 +1,7 @@
 #ifndef PACKET_DECODE_H
 #define PACKET_DECODE_H
 
+#include "decode.h"
 #include "decode_ethernet.h"
 #include "decode_ipv4.h"
 #include "decode_ipv6.h"
@@ -9,10 +10,12 @@
 #include <stdint.h>
 
 typedef struct packet_t {
-	ethernet_hdr *ethhdr;
-	ipv4_hdr     *ip4hdr;
-	ipv6_hdr     *ip6hdr;
-	vlan_hdr     *vlanhdr;
+	ethernet_hdr *ethh;
+	ipv4_hdr     *ip4h;
+	ipv6_hdr     *ip6h;
+	vlan_hdr     *vlanh;
+	address_t    src;
+	address_t    dst;
 } packet_t;
 
 int decode_ethernet(packet_t *pkt, uint8_t *payload, uint16_t len);

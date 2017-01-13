@@ -7,11 +7,11 @@ int decode_ethernet(packet_t *pkt, uint8_t *payload, uint16_t len) {
 	if(len < ETHERNET_HEADER_LEN) {
 		return -1;
 	}
-	pkt->ethhdr = (ethernet_hdr *)payload;
-	if(pkt->ethhdr == NULL) {
+	pkt->ethh = (ethernet_hdr *)payload;
+	if(pkt->ethh == NULL) {
 		return -1;
 	}
-	uint16_t type = ntohs(pkt->ethhdr->eth_type);
+	uint16_t type = ntohs(pkt->ethh->eth_type);
 	switch(type) {
 		case ETHERNET_TYPE_IP:
 			return decode_ipv4(pkt, payload + ETHERNET_HEADER_LEN, len - ETHERNET_HEADER_LEN);
@@ -25,6 +25,7 @@ int decode_ethernet(packet_t *pkt, uint8_t *payload, uint16_t len) {
 			return decode_mpls(pkt, payload + ETHERNET_HEADER_LEN, len - ETHERNET_HEADER_LEN);
 		default:
 			printf("ether type 0x%04x not supported,%s,%d\n",type,__FILE__,__LINE__);
+			return -1;
 	}
 	return 0;
 }

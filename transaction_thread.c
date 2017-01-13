@@ -43,8 +43,9 @@ void *transaction_thread(void *arg) {
 		while(n != NULL) {
 			memset(pkt, 0, sz);
 			pktbf = (pkt_buffer*)n->data;
-			packet_decode(pkt, (uint8_t *)pktbf->pkt, pktbf->len);
-			packet_store_output(pkt);
+			if(packet_decode(pkt, (uint8_t *)pktbf->pkt, pktbf->len) == 0) { // decode successfully
+				packet_store_output(pkt);
+			}
 			// counter increase after one packet has been processed
 			++pkt_cnt;
 			// skip to the next packet
