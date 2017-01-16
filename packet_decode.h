@@ -10,6 +10,7 @@
 #include <stdint.h>
 
 typedef struct packet_t {
+	uint8_t proto;
 	ethernet_hdr *ethh;
 	ipv4_hdr     *ip4h;
 	ipv6_hdr     *ip6h;

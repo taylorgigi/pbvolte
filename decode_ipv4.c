@@ -28,6 +28,24 @@ int decode_ipv4(packet_t *pkt, uint8_t *payload, uint16_t len) {
 	SET_IPV4_SRC_ADDR(pkt,&pkt->src);
 	SET_IPV4_DST_ADDR(pkt,&pkt->dst);
 	// to-do: decode ipv4 options, ignored
+	pkt->proto = IPV4_GET_IPPROTO(pkt);
+	// if a fragment, pass off for re-assemply
+	if(IPV4_GET_IPOFFSET(pkt) > 0 || IPV4_GET_MF(pkt) == 1) {
+	}
+	// check what next decoder to invoke
+	switch(IPV4_GET_IPPROTO(pkt)) {
+		case IPPROTO_TCP:
+		case IPPROTO_UDP:
+		case IPPROTO_ICMP:
+		case IPPROTO_GRE:
+		case IPPROTO_SCTP:
+		case IPPROTO_IPV6:
+		case IPPROTO_IP:
+		case IPPROTO_ICMPV6:
+		default:
+			break;
+	}
+
 	return 0;
 }
 
